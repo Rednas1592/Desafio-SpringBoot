@@ -2,7 +2,7 @@
 | **Data**     | **Versão**   | **Autor**                      | **Descrição da Alteração** |
 |:------------:|:------------:|:------------------------------:|:--------------------------:|
 | _17/01/2022_ | _01_         | Sander Bezerra  | _Criação do documento_   
-| _31/02/2022_ | _02_         | Sander Bezerra  | _Atualização_    
+| _07/02/2022_ | _02_         | Sander Bezerra  | _Atualização_    
 ---
 
 
