@@ -1,13 +1,9 @@
 package br.com.desafio.controller;
 
-import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -18,81 +14,62 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import br.com.desafio.model.CustomerOrder;
-import br.com.desafio.model.StatusOrder;
-import br.com.desafio.repository.OrderRepository;
+import br.com.desafio.model.CustomerOrderDTO;
+import br.com.desafio.model.CustomerOrderDTOUpdate;
 import br.com.desafio.util.OrderProducer;
-import br.com.desafio.validation.ErrorResponse;
 
 @RestController
 @RequestMapping("/orders")
 public class OrderController extends OrderProducer {
 
 	@Autowired
-	private OrderRepository orderRepository;
+	private OrderConsumerUseCase orderConsumerUseCase;	
 	
 	@GetMapping
-	public List<CustomerOrder> listar() {
+	public List<CustomerOrderDTO> listar() {
 		
-		return orderRepository.findAll();
+		return orderConsumerUseCase.listar();
 	}
 	
 	@GetMapping("/search") 
-	public List<CustomerOrder> filtrar(String max_total, String	 min_total, String status, String q) {
+	public List<CustomerOrderDTO> filtrar(
+			@RequestParam(value = "max_total", required = false) String maxTotal, 
+			@RequestParam(value = "min_total", required = false) String minTotal, 
+			@RequestParam(value = "status", required = false) String status, 
+			@RequestParam(value = "q", required = false) String q) {
 		
-		return orderRepository.findByFilter(q.toLowerCase(), Double.parseDouble(min_total), Double.parseDouble(max_total), status.toLowerCase()); 
+		return orderConsumerUseCase.filtrar(maxTotal, minTotal, status, q); 
 	}
 	 
 	@GetMapping("/{id}")
-	public ResponseEntity<?> consultarPorId(@PathVariable Long id) {
+	public ResponseEntity<CustomerOrderDTO> consultarPorId(@PathVariable Long id) {
 		
-		Optional<CustomerOrder> optional = orderRepository.findById(id);
-		if(optional.isPresent()) {
-			return ResponseEntity.ok(orderRepository.findById(id).get());
-		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("404", "Pedido não encontrado!"));
+		return orderConsumerUseCase.consultarPorId(id);
 	}
 	
 	@PostMapping
 	@Transactional
-	public ResponseEntity<?> cadastrar(@RequestBody @Validated CustomerOrder customerOrder,  UriComponentsBuilder uriBuilder) throws InterruptedException, ExecutionException {
+	public ResponseEntity<CustomerOrderDTO> cadastrar(@RequestBody @Validated CustomerOrderDTO customerOrder,  UriComponentsBuilder uriBuilder) throws InterruptedException, ExecutionException {
 		
-		orderRepository.save(customerOrder);				
-		URI uri = uriBuilder.path("/orders/{id}").buildAndExpand(customerOrder.getId()).toUri();
-		
-		publishKafka(customerOrder);
-		
-		return ResponseEntity.created(uri).body(customerOrder);
+		return orderConsumerUseCase.cadastrar(customerOrder, uriBuilder);
 	}
 
 	@PutMapping("/{id}")
 	@Transactional
-	public ResponseEntity<?> atualizar(@PathVariable Long id, @Validated @RequestBody CustomerOrder customerOrder) {
+	public ResponseEntity<CustomerOrderDTO> atualizar(@PathVariable Long id, @Validated @RequestBody CustomerOrderDTOUpdate customerOrder) {
 		
-		Optional<CustomerOrder> optional = orderRepository.findById(id);
-		if(optional.isPresent()) {
-			CustomerOrder customerOrder2 = orderRepository.getById(id);
-			customerOrder2.setName(customerOrder.getName());
-			customerOrder2.setDescription(customerOrder.getDescription());
-			
-			return ResponseEntity.ok(customerOrder2);
-		}
-		
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("404", "Pedido não encontrado!"));
+		return orderConsumerUseCase.atualizar(id, customerOrder);
 	}
 	
 	@DeleteMapping("/{id}")
 	@Transactional
-	public ResponseEntity<?> remover(@PathVariable Long id) {
+	public ResponseEntity<CustomerOrderDTO> remover(@PathVariable Long id) {
 		
-		Optional<CustomerOrder> optional = orderRepository.findById(id);
-		if(optional.isPresent()) {
-			orderRepository.deleteById(id);
-			return ResponseEntity.noContent().build();
-		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("404", "Pedido não encontrado!"));
+		return orderConsumerUseCase.remover(id);
 	}
 }

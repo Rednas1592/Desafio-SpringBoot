@@ -25,22 +25,26 @@ public class OrderProducer {
 	    return properties;
 	}
 
-	protected void publishKafka(CustomerOrder customerOrder) throws InterruptedException, ExecutionException {
+	public void publishKafka(CustomerOrder customerOrder) throws InterruptedException, ExecutionException {
 		var producer = new KafkaProducer<String,CustomerOrder>(properties());
 		
 		var key = "PEDIDOS";
 	    var value = customerOrder;
-	    var record = new ProducerRecord<String, CustomerOrder>("ORDER_TOPICO", key, value);
-	    Callback callback = (data, ex) -> {
-	        if (ex != null) {
-	            ex.printStackTrace();
-	            return;
-	        }
-	        log.info("Mensagem enviada com sucesso para: " + data.topic() + " | partition " + data.partition() + "| offset " + data.offset() + "| tempo " + data.timestamp());
-	    };
+	    var registro = new ProducerRecord<String, CustomerOrder>("ORDER_TOPICO", key, value);
 	    
-	    producer.send(record, callback).get();
-	    producer.close();
+	    try{
+		    Callback callback = (data, ex) -> {
+		        if (ex != null) {
+		            ex.getMessage();
+		            return;
+		        }
+		        log.info("Mensagem enviada com sucesso para: " + data.topic() + " | partition " + data.partition() + "| offset " + data.offset() + "| tempo " + data.timestamp());
+		    };
+		    producer.send(registro, callback).get();
+
+	    } finally {
+	    	producer.close();
+	   }
 	}
 
 	public OrderProducer() {

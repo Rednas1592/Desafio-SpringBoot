@@ -1,5 +1,7 @@
 package br.com.desafio.validation;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ErrorResponse {
 
-	private String status_code;
+	@JsonProperty("status_code")
+	private String statusCode;
 	private String message;
 }

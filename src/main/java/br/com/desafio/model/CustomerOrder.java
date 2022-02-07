@@ -7,6 +7,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -36,6 +37,14 @@ public class CustomerOrder {
 	private String description;
 	@Enumerated(EnumType.STRING)
 	private StatusOrder status = StatusOrder.NOT_PROCESSED;
+	@NotNull
+	@Min(value = 10)
 	private double total;
 	
+	public CustomerOrder(CustomerOrderDTO customerOrderDTO) {
+		this.name = customerOrderDTO.getName();
+		this.description = customerOrderDTO.getDescription();
+		this.status = customerOrderDTO.getStatus();
+		this.total = customerOrderDTO.getTotal();
+	}
 }

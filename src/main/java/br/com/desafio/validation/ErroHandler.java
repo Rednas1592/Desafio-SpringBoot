@@ -1,14 +1,15 @@
 package br.com.desafio.validation;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import javax.persistence.EntityNotFoundException;
+import javax.validation.UnexpectedTypeException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.FieldError;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,18 +24,9 @@ public class ErroHandler {
 	
 	@ResponseStatus(code = HttpStatus.BAD_REQUEST)
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	private List<ErrorResponse> handle(MethodArgumentNotValidException exception){
+	private ErrorResponse handle(MethodArgumentNotValidException exception){
 		
-		List<ErrorResponse> errorResponse = new ArrayList();
-		List<FieldError> fieldErrors = exception.getFieldErrors();
-		
-		fieldErrors.forEach(e -> {
-			String mensagem = messageSource.getMessage(e, LocaleContextHolder.getLocale());
-			ErrorResponse erro = new ErrorResponse("400", mensagem);
-			errorResponse.add(erro);
-		});
-		
-		return errorResponse;
+		return new ErrorResponse("400", exception.getMessage());
 	}
 
 	@ResponseStatus(code = HttpStatus.BAD_REQUEST)
@@ -61,6 +53,35 @@ public class ErroHandler {
 	@ResponseStatus(code = HttpStatus.BAD_REQUEST)
 	@ExceptionHandler(IllegalArgumentException.class)
 	private ErrorResponse handle(IllegalArgumentException exception){
+		
+		return new ErrorResponse("400", exception.getMessage());
+	}	
+	
+
+	@ResponseStatus(code = HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(HttpMessageNotWritableException.class)
+	private ErrorResponse handle(HttpMessageNotWritableException exception){
+		
+		return new ErrorResponse("400", exception.getMessage());
+	}	
+	
+	@ResponseStatus(code = HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(EntityNotFoundException.class)
+	private ErrorResponse handle(EntityNotFoundException exception){
+		
+		return new ErrorResponse("400", exception.getMessage());
+	}
+	
+	@ResponseStatus(code = HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(UnexpectedTypeException.class)
+	private ErrorResponse handle(UnexpectedTypeException exception){
+		
+		return new ErrorResponse("400", exception.getMessage());
+	}	
+	
+	@ResponseStatus(code = HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(ExecutionException.class)
+	private ErrorResponse handle(ExecutionException exception){
 		
 		return new ErrorResponse("400", exception.getMessage());
 	}	
